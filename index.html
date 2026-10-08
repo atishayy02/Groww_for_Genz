@@ -79,7 +79,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .btn{height:52px;border-radius:14px;font-weight:700;font-size:15px;text-align:center;display:grid;place-items:center;flex:1;transition:transform .15s,opacity .2s,background .2s}
 .btn:active{transform:scale(.98)}
 .btn.primary{background:var(--ink);color:#fff}
-.btn.primary[disabled]{background:#d9dbe2;color:#fff;cursor:not-allowed}
+.btn.primary[disabled]{background:#fff;color:var(--mute);box-shadow:inset 0 0 0 1.5px var(--line);cursor:not-allowed}
 .btn.buy{background:var(--green);color:#fff}
 .btn.sell{background:var(--red-bg);color:var(--red)}
 .btn.ghost{height:40px;font-weight:600;color:var(--mute);font-size:14px;flex:none}
@@ -170,6 +170,17 @@ button.hold:active{transform:scale(.99)}
 .screen.active .block:nth-child(3){animation-delay:.3s}
 .screen.active .block:nth-child(4){animation-delay:.4s}
 .screen.active .block:nth-child(5){animation-delay:.5s}
+.screen.active .block:nth-child(6){animation-delay:.55s}
+.screen.active .block:nth-child(7){animation-delay:.6s}
+.card.happened p,.card.note p{margin:0;padding:12px 0;font-size:15.5px;line-height:1.5;font-weight:500}
+.card.happened p b{font-weight:700}
+.card.note{background:var(--calm);border-color:var(--calm-line)}
+.card.note p + p{border-top:1px solid var(--calm-line);color:var(--ink2)}
+.card.more .rest{display:block;max-height:0;overflow:hidden;transition:max-height .4s var(--ease)}
+.card.more.open .rest{max-height:260px}
+.card.more .rest .li{border-top:1px solid var(--line)}
+.morebtn{display:block;width:100%;padding:10px 0 12px;font-size:13.5px;font-weight:600;color:var(--mute);border-top:1px solid var(--line)}
+.morebtn:hover{color:var(--ink)}
 .label{font-size:11.5px;letter-spacing:.1em;font-weight:700;color:var(--mute);margin:0 4px 10px}
 .card{border-radius:var(--r);padding:6px 16px;border:1px solid var(--line);background:#fff}
 .card.tell{background:#f6fbf9;border-color:#dcf0e9}
@@ -180,12 +191,11 @@ button.hold:active{transform:scale(.99)}
 .mk svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
 .mk.y{background:var(--green);color:#fff}
 .mk.n{background:#e9ebf1;color:#6a707d}
-.reflect{margin:28px 20px 0;border-radius:var(--r);background:var(--calm);border:1px solid var(--calm-line);padding:22px 18px 18px}
-.reflect h3{margin:0 0 4px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:#4a58a6}
-.reflect .q{font-size:21px;font-weight:700;letter-spacing:-.015em;margin:6px 0 4px;line-height:1.3}
-.reflect .opt-note{font-size:13px;color:var(--mute);margin:0 0 14px}
-.opt{display:flex;align-items:center;gap:12px;width:100%;padding:14px 14px;border-radius:14px;background:#fff;border:1.5px solid transparent;font-size:15.5px;font-weight:500;margin-top:8px;
-  box-shadow:0 1px 0 rgba(20,22,40,.04);transition:border-color .2s,transform .15s,box-shadow .2s}
+.reflect{margin:30px 20px 0;padding:4px 2px 0}
+.reflect h3{margin:0 0 2px;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--mute)}
+.reflect .q{font-size:18px;font-weight:700;letter-spacing:-.01em;margin:6px 0 2px;line-height:1.3}
+.reflect .opt-note{font-size:13px;color:var(--mute);margin:0 0 10px}
+.opt{display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;border-radius:14px;background:#fff;border:1.5px solid var(--line);font-size:15px;font-weight:500;margin-top:8px;transition:border-color .2s,transform .15s,box-shadow .2s}
 .opt:active{transform:scale(.99)}
 .opt .rd{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid #c3c7d2;display:grid;place-items:center;transition:.2s}
 .opt .rd:after{content:"";width:10px;height:10px;border-radius:50%;background:var(--ink);transform:scale(0);transition:transform .25s var(--ease)}
@@ -388,30 +398,38 @@ function tHolding(){
 
 function tContext(){
   const d=D(), up=state.s==='gain';
-  const lead = up
-    ? `<p class="lead">That’s a good outcome.</p><p class="sub">One result can’t tell you whether you’ve found a repeatable investing skill.</p>`
-    : `<p class="lead">A loss can feel significant when it’s your first one.</p><p class="sub">But the result alone can’t tell you whether your original reasoning was right or wrong.</p>`;
-  const tell = up ? 'Your investment is currently worth more than you paid.' : 'Your investment is currently worth less than you paid.';
+  const lead = `Your investment is currently ${up?'up':'down'} ${d.pct}%.`;
+  const sub = up
+    ? 'One result can’t tell you whether you’ve found a repeatable investing skill.'
+    : 'A loss can feel significant when it’s your first one. But the result alone can’t tell you whether your original reasoning was right or wrong.';
+  const tell = up ? 'Your investment has gained value since listing.' : 'Your investment has lost value since listing.';
   const not = up
     ? ['That you’re good at picking investments.','That similar IPOs will perform the same way.','That taking more risk will produce similar returns.']
     : ['That the company is necessarily a bad investment.','That your original reasoning was necessarily wrong.','That the loss will necessarily continue.'];
   const tick='<svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>', x='<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+  const li=t=>`<div class="li"><span class="mk n">${x}</span>${t}</div>`;
   return `
   <div class="bar">${back('holding')}</div>
   <div class="hero">
     <div class="eyebrow2">Your first IPO result <span class="tag">NovaTech Ltd.</span></div>
     <div class="metric ${d.cls}">${d.sign}${d.pct}%</div>
-    ${lead.split('</p>')[0]}</p>
-    ${lead.split('</p>')[1]}</p>
+    <p class="lead">${lead}</p>
+    <p class="sub">${sub}</p>
   </div>
-  <div class="block"><div class="label">WHAT THIS RESULT TELLS YOU</div>
+  <div class="block"><div class="label">WHAT HAPPENED?</div>
+    <div class="card happened"><p>Your IPO was allotted at <b>₹125</b> and is now trading at <b class="${d.cls}">${inr2(d.price)}</b>.</p></div></div>
+  <div class="block"><div class="label">WHAT THIS TELLS YOU</div>
     <div class="card tell"><div class="li"><span class="mk y">${tick}</span>${tell}</div></div></div>
   <div class="block"><div class="label">WHAT IT DOESN’T TELL YOU</div>
-    <div class="card">${not.map(t=>`<div class="li"><span class="mk n">${x}</span>${t}</div>`).join('')}</div></div>
-  <div class="block reflect" style="margin-left:20px;margin-right:20px">
+    <div class="card more" id="notCard">${li(not[0])}<div class="rest">${not.slice(1).map(li).join('')}</div>
+      <button class="morebtn" data-act="more" aria-expanded="false">Show 2 more</button></div></div>
+  <div class="block"><div class="label">ONE THING TO REMEMBER</div>
+    <div class="card note"><p>IPO allotment is random. Getting an allotment wasn’t evidence of stock-picking skill.</p>
+      <p>Your return tells you what happened after listing — not whether you could have predicted it.</p></div></div>
+  <div class="block reflect">
     <h3>One thing worth thinking about</h3>
     <div class="q">Why did you invest in this IPO?</div>
-    <p class="opt-note">Just for you. There’s no right answer.</p>
+    <p class="opt-note">Optional, and just for you.</p>
     <div role="radiogroup" aria-label="Why did you invest in this IPO?">
     ${Object.entries(REASONS).map(([k,r])=>`<button class="opt ${state.reason===k?'on':''}" role="radio" aria-checked="${state.reason===k}" data-reason="${k}"><span class="rd"></span>${r.label}</button>`).join('')}
     </div>
@@ -442,7 +460,7 @@ function tReflection(){
       <p>Keeping those separate can help you learn from the decision without judging yourself by the outcome.</p>
     </div>
     <div class="quote">A good outcome doesn’t automatically mean a good decision — and a bad outcome doesn’t automatically mean a bad decision.</div>
-    <div class="agency"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01" stroke-linecap="round"/></svg><span>Nothing here changes what you can do with this investment. This isn’t advice, and what you do next is up to you.</span></div>
+    <div class="agency"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01" stroke-linecap="round"/></svg><span>Nothing here changes what you can do with this investment.</span></div>
   </div>
   <div class="spacer"></div>
   <div class="dock"><button class="btn primary" data-go="portfolio">Back to my portfolio</button></div>`;
@@ -483,6 +501,7 @@ document.addEventListener('click',e=>{
     document.querySelectorAll('#context .opt').forEach(o=>{const on=o.dataset.reason===state.reason;o.classList.toggle('on',on);o.setAttribute('aria-checked',on)});
     $('#reflectBtn').disabled=false; return;
   }
+  if(t.dataset.act==='more'){ const c=t.closest('.card'); const o=c.classList.toggle('open'); t.setAttribute('aria-expanded',o); t.textContent=o?'Show less':'Show 2 more'; return; }
   if(t.dataset.act==='dismiss'){ state.dismissed[state.s]=true; $('#holding').innerHTML=tHolding(); return; }
   if(t.dataset.act==='reopen'){ state.dismissed[state.s]=false; $('#holding').innerHTML=tHolding(); return; }
   if(t.dataset.go && !t.disabled) go(t.dataset.go);
