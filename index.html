@@ -59,6 +59,12 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .screen.active{opacity:1;pointer-events:auto;transform:none}
 .pad{padding:0 20px}
 .spacer{height:120px}
+.end{height:40px}
+.flow-cta{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:16px}
+.flow-cta.pad{margin:28px 20px 0}
+.flow-cta .btn{width:100%;flex:none}
+.flow-cta .btn.ghost{width:auto;padding:0 18px;flex:none}
+.fine{padding-bottom:0}
 
 /* top bars */
 .bar{display:flex;align-items:center;gap:6px;height:52px;padding:0 12px 0 8px;position:sticky;top:0;background:#fff;z-index:5}
@@ -69,9 +75,12 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .bar .ttl small{display:block;font-weight:500;font-size:11.5px;color:var(--mute)}
 
 /* sticky bottom actions */
-.dock{position:absolute;left:0;right:0;bottom:0;padding:28px 20px 22px;background:linear-gradient(rgba(255,255,255,0),#fff 38%);z-index:10;
-  display:flex;flex-direction:column;gap:6px;transform:translateY(20px);opacity:0;pointer-events:none;transition:.4s var(--ease)}
-.screen.active .dock{transform:none;opacity:1;pointer-events:auto;transition-delay:.15s}
+.dock{position:sticky;bottom:0;margin-top:auto;padding:14px 20px 22px;background:#fff;border-top:1px solid var(--line);z-index:10;
+  display:flex;flex-direction:column;gap:6px;opacity:0;transition:opacity .4s var(--ease)}
+.screen.active .dock{opacity:1}
+#holding{display:flex;flex-direction:column}
+#holding > *{flex:none}
+#holding > .dock{margin-top:auto}
 .dock .btn{flex:none;width:100%}
 .dock.two{flex-direction:row;gap:12px}
 .dock.two .btn{flex:1;width:auto}
@@ -231,8 +240,8 @@ button.hold:active{transform:scale(.99)}
 
 /* ---------- small screens: the app goes full-bleed ---------- */
 @media (max-width:900px){
-  .shell{display:block;padding:0}
-  .side{width:100%;gap:0;position:sticky;top:0;z-index:100}
+  .shell{display:flex;flex-direction:column;gap:0;height:100dvh;padding:0;align-items:stretch;justify-content:flex-start}
+  .side{width:100%;gap:0;flex:none;z-index:100}
   .side .head,.side .notes{display:none}
   .demo{border-radius:0;padding:10px 12px;gap:8px;flex-direction:row;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--line)}
   .demo label{display:none}
@@ -241,7 +250,7 @@ button.hold:active{transform:scale(.99)}
   .demo .row2{display:none}
   .seg button{padding:7px 6px;font-size:12px}
   .steps button{padding:6px 2px}
-  .phone{width:100%;height:calc(100dvh - 92px);border-radius:0;box-shadow:none}
+  .phone{width:100%;flex:1;min-height:0;height:auto;border-radius:0;box-shadow:none}
   .status{display:none}
   .screen{padding-top:0}
 }
@@ -392,7 +401,7 @@ function tHolding(){
     <div>Invested<b>₹5,000</b></div><div>Current value<b>${inr(d.value)}</b></div>
   </div>
   ${card}
-  <div class="spacer"></div>
+  <div style="height:28px"></div>
   <div class="dock two"><button class="btn buy">BUY</button><button class="btn sell">SELL</button></div>`;
 }
 
@@ -433,13 +442,13 @@ function tContext(){
     <div role="radiogroup" aria-label="Why did you invest in this IPO?">
     ${Object.entries(REASONS).map(([k,r])=>`<button class="opt ${state.reason===k?'on':''}" role="radio" aria-checked="${state.reason===k}" data-reason="${k}"><span class="rd"></span>${r.label}</button>`).join('')}
     </div>
+    <div class="flow-cta">
+      <button class="btn primary" id="reflectBtn" data-go="reflection" ${state.reason?'':'disabled'}>Reflect on my decision</button>
+      <button class="btn ghost" data-go="holding">Not now</button>
+    </div>
   </div>
   <p class="fine">This is context, not advice. Buy and Sell stay available, and every decision about this investment is yours.</p>
-  <div class="spacer" style="height:150px"></div>
-  <div class="dock">
-    <button class="btn primary" id="reflectBtn" data-go="reflection" ${state.reason?'':'disabled'}>Reflect on my decision</button>
-    <button class="btn ghost" data-go="holding" style="align-self:center">Not now</button>
-  </div>`;
+  <div class="end"></div>`;
 }
 
 function tReflection(){
@@ -462,8 +471,8 @@ function tReflection(){
     <div class="quote">A good outcome doesn’t automatically mean a good decision — and a bad outcome doesn’t automatically mean a bad decision.</div>
     <div class="agency"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01" stroke-linecap="round"/></svg><span>Nothing here changes what you can do with this investment.</span></div>
   </div>
-  <div class="spacer"></div>
-  <div class="dock"><button class="btn primary" data-go="portfolio">Back to my portfolio</button></div>`;
+  <div class="flow-cta pad"><button class="btn primary" data-go="portfolio">Back to my portfolio</button></div>
+  <div class="end"></div>`;
 }
 
 /* ============ render + navigation ============ */
