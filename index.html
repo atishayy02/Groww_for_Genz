@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Outcome Context · Investing prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#121317; --ink2:#44474f; --mute:#7a7f8a; --line:#ececf1; --soft:#f5f6f9; --bg:#eceef2;
+  --green:#00a37a; --green-bg:#e6f6f1; --red:#e5484d; --red-bg:#fdecec;
+  --calm:#f3f5fb; --calm-line:#e3e7f3; --accent:#5367ff;
+  --r:20px; --ease:cubic-bezier(.22,.8,.3,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);
+  -webkit-font-smoothing:antialiased;font-feature-settings:"tnum" 1,"cv11" 1}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0;text-align:inherit}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.up{color:var(--green)} .down{color:var(--red)}
+
+/* ---------- page shell ---------- */
+.shell{min-height:100%;display:flex;align-items:center;justify-content:center;gap:56px;padding:24px}
+.side{width:320px;display:flex;flex-direction:column;gap:22px}
+.side h1{font-size:26px;line-height:1.15;margin:0;letter-spacing:-.02em}
+.side .sub{color:var(--mute);font-size:13.5px;margin:6px 0 0;line-height:1.5}
+.demo{background:#fff;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 0 rgba(0,0,0,.04)}
+.demo label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--soft);border-radius:12px;padding:3px;gap:3px}
+.seg button{padding:9px 8px;border-radius:9px;font-size:13px;font-weight:600;text-align:center;color:var(--ink2);transition:.2s}
+.seg button.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12);color:var(--ink)}
+.seg button .p{font-weight:700}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.steps button{font-size:12px;font-weight:600;padding:8px 4px;border-radius:9px;background:var(--soft);color:var(--ink2);text-align:center;transition:.2s}
+.steps button.on{background:var(--ink);color:#fff}
+.demo .row2{display:flex;justify-content:space-between;align-items:center}
+.demo .restart{font-size:12px;font-weight:600;color:var(--mute);text-decoration:underline;text-underline-offset:3px}
+.notes{display:flex;flex-direction:column;gap:14px;font-size:13px;line-height:1.5;color:var(--ink2)}
+.notes h3{margin:0 0 6px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.notes ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
+.notes li{padding-left:16px;position:relative}
+.notes li:before{content:"";position:absolute;left:0;top:.6em;width:6px;height:6px;border-radius:50%;background:var(--green)}
+.notes .no li:before{background:var(--mute)}
+.notes .tag{font-size:12px;color:var(--mute);background:none;padding:0;font-weight:500}
+
+/* ---------- phone ---------- */
+.phone{position:relative;width:390px;height:min(844px,calc(100dvh - 48px));background:#fff;border-radius:44px;overflow:hidden;
+  box-shadow:0 0 0 10px #15161a,0 0 0 11px #2b2d33,0 40px 80px -20px rgba(20,22,40,.35)}
+.status{position:absolute;inset:0 0 auto 0;height:44px;display:flex;justify-content:space-between;align-items:flex-end;padding:0 28px 6px;
+  font-size:14px;font-weight:600;z-index:30;pointer-events:none;background:#fff}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding-top:44px;background:#fff;opacity:0;pointer-events:none;
+  transform:translateX(28px);transition:opacity .38s var(--ease),transform .45s var(--ease);scrollbar-width:none}
+.screen::-webkit-scrollbar{display:none}
+.screen.before{transform:translateX(-28px)}
+.screen.active{opacity:1;pointer-events:auto;transform:none}
+.pad{padding:0 20px}
+.spacer{height:120px}
+
+/* top bars */
+.bar{display:flex;align-items:center;gap:6px;height:52px;padding:0 12px 0 8px;position:sticky;top:0;background:#fff;z-index:5}
+.icon-btn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none;transition:background .2s}
+.icon-btn:hover{background:var(--soft)}
+.icon-btn svg{width:22px;height:22px;stroke:var(--ink);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.bar .ttl{font-size:15px;font-weight:600}
+.bar .ttl small{display:block;font-weight:500;font-size:11.5px;color:var(--mute)}
+
+/* sticky bottom actions */
+.dock{position:absolute;left:0;right:0;bottom:0;padding:28px 20px 22px;background:linear-gradient(rgba(255,255,255,0),#fff 38%);z-index:10;
+  display:flex;flex-direction:column;gap:6px;transform:translateY(20px);opacity:0;pointer-events:none;transition:.4s var(--ease)}
+.screen.active .dock{transform:none;opacity:1;pointer-events:auto;transition-delay:.15s}
+.dock .btn{flex:none;width:100%}
+.dock.two{flex-direction:row;gap:12px}
+.dock.two .btn{flex:1;width:auto}
+.dock .btn.ghost{width:auto}
+.btn{height:52px;border-radius:14px;font-weight:700;font-size:15px;text-align:center;display:grid;place-items:center;flex:1;transition:transform .15s,opacity .2s,background .2s}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--ink);color:#fff}
+.btn.primary[disabled]{background:#d9dbe2;color:#fff;cursor:not-allowed}
+.btn.buy{background:var(--green);color:#fff}
+.btn.sell{background:var(--red-bg);color:var(--red)}
+.btn.ghost{height:40px;font-weight:600;color:var(--mute);font-size:14px;flex:none}
+.btn.ghost:hover{color:var(--ink)}
+
+/* bottom nav */
+.tabs{position:absolute;left:0;right:0;bottom:0;height:78px;background:#fff;border-top:1px solid var(--line);display:flex;padding:8px 8px 18px;z-index:12;
+  transition:transform .35s var(--ease)}
+.tabs.hide{transform:translateY(100%)}
+.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--mute)}
+.tabs svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tabs button.on{color:var(--ink)}
+
+/* ---------- portfolio ---------- */
+.hello{display:flex;align-items:center;justify-content:space-between;padding:6px 20px 0}
+.hello h1{margin:0;font-size:21px;letter-spacing:-.02em;font-weight:700}
+.hello .r{display:flex;gap:2px;align-items:center}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--ink);color:#fff;font-weight:700;font-size:14px;display:grid;place-items:center;margin-left:4px}
+.pv{padding:22px 20px 4px}
+.pv .lbl{font-size:13px;color:var(--mute);font-weight:500}
+.pv .big{font-size:42px;font-weight:800;letter-spacing:-.035em;margin:2px 0 2px}
+.pv .ret{font-size:14px;font-weight:600;display:flex;gap:8px;align-items:center}
+.pv .ret span.m{color:var(--mute);font-weight:500}
+.spark{display:block;width:100%;height:84px;margin-top:10px}
+.chips{display:flex;gap:8px;padding:14px 20px 4px}
+.chip{padding:8px 14px;border-radius:999px;background:var(--soft);font-size:13px;font-weight:600;color:var(--ink2)}
+.chip.on{background:var(--ink);color:#fff}
+.sec{display:flex;justify-content:space-between;align-items:baseline;padding:20px 20px 10px}
+.sec h2{margin:0;font-size:16px;font-weight:700}
+.sec span{font-size:12px;color:var(--mute);font-weight:500}
+.hold{margin:0 20px;border-radius:var(--r);background:#fff;border:1px solid var(--line);padding:16px;display:block;width:calc(100% - 40px);text-align:left;transition:transform .2s,box-shadow .2s}
+.hold + .hold{margin-top:10px}
+button.hold:hover{box-shadow:0 8px 24px -12px rgba(20,22,40,.25);transform:translateY(-1px)}
+button.hold:active{transform:scale(.99)}
+.hold .h1{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.hold .nm{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
+.tag{font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:3px 7px;border-radius:6px;background:var(--soft);color:var(--ink2)}
+.hold .pc{font-size:17px;font-weight:700;text-align:right}
+.hold .pc small{display:block;font-size:12px;font-weight:500;margin-top:1px}
+.hold .meta{display:flex;gap:24px;margin-top:14px}
+.hold .meta div{font-size:11.5px;color:var(--mute);font-weight:500}
+.hold .meta b{display:block;color:var(--ink);font-size:15px;font-weight:600;margin-top:2px}
+.badge{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:6px 10px;border-radius:999px;background:var(--calm);border:1px solid var(--calm-line);
+  font-size:12px;font-weight:600;color:#3c4a8f}
+.badge i{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.hold.first{border-color:var(--calm-line)}
+.hold.plain .nm{font-size:15px}
+.hold.plain .meta{margin-top:10px}
+
+/* ---------- IPO holding ---------- */
+.px{padding:6px 20px 0}
+.px .big{font-size:40px;font-weight:800;letter-spacing:-.03em;display:flex;align-items:baseline;gap:10px}
+.pill{font-size:14px;font-weight:700;padding:4px 10px;border-radius:8px;letter-spacing:0}
+.pill.up{background:var(--green-bg)} .pill.down{background:var(--red-bg)}
+.px .path{margin-top:6px;font-size:14px;color:var(--ink2);font-weight:500}
+.px .path b{font-weight:700;color:var(--ink)}
+.chart{display:block;width:100%;height:150px;margin:12px 0 0}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:20px 20px 0}
+.stats div{background:#fff;padding:12px 14px;font-size:12px;color:var(--mute);font-weight:500}
+.stats b{display:block;font-size:15px;color:var(--ink);margin-top:2px;font-weight:600}
+.oc{margin:20px 20px 0;border-radius:var(--r);background:var(--calm);border:1px solid var(--calm-line);padding:20px;
+  animation:rise .7s var(--ease) .35s both}
+.oc .eyebrow{font-size:11px;letter-spacing:.09em;font-weight:700;color:#4a58a6;text-transform:uppercase;display:flex;align-items:center;gap:7px}
+.oc .eyebrow i{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.oc h3{margin:10px 0 6px;font-size:19px;letter-spacing:-.01em;line-height:1.3}
+.oc p{margin:0;font-size:14.5px;line-height:1.5;color:var(--ink2)}
+.oc .btn{margin-top:16px;width:100%}
+.oc .btn.ghost{margin:4px auto 0;display:block;text-align:center;line-height:40px;width:auto;padding:0 16px}
+.oc-quiet{margin:20px 20px 0;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-radius:14px;background:var(--soft);font-size:13.5px;font-weight:600;width:calc(100% - 40px)}
+.oc-quiet span{color:var(--mute);font-weight:500}
+.oc-quiet u{text-underline-offset:3px;font-weight:600}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ---------- Outcome Context (hero) ---------- */
+.hero{padding:10px 24px 0}
+.eyebrow2{font-size:12px;letter-spacing:.09em;font-weight:700;text-transform:uppercase;color:var(--mute);display:flex;align-items:center;gap:8px}
+.eyebrow2 .tag{text-transform:none;letter-spacing:0}
+.metric{font-size:76px;line-height:1;font-weight:800;letter-spacing:-.045em;margin:14px 0 14px}
+.lead{font-size:24px;line-height:1.25;font-weight:700;letter-spacing:-.02em;margin:0 0 10px}
+.sub{font-size:16.5px;line-height:1.55;color:var(--ink2);margin:0}
+.sub + .sub{margin-top:10px}
+.block{margin:28px 20px 0;opacity:0;transform:translateY(12px)}
+.screen.active .block{animation:rise .7s var(--ease) both}
+.screen.active .hero > *{animation:rise .7s var(--ease) both}
+.screen.active .hero > :nth-child(2){animation-delay:.08s}
+.screen.active .hero > :nth-child(3){animation-delay:.16s}
+.screen.active .hero > :nth-child(4){animation-delay:.24s}
+.screen.active .block:nth-child(3){animation-delay:.3s}
+.screen.active .block:nth-child(4){animation-delay:.4s}
+.screen.active .block:nth-child(5){animation-delay:.5s}
+.label{font-size:11.5px;letter-spacing:.1em;font-weight:700;color:var(--mute);margin:0 4px 10px}
+.card{border-radius:var(--r);padding:6px 16px;border:1px solid var(--line);background:#fff}
+.card.tell{background:#f6fbf9;border-color:#dcf0e9}
+.li{display:flex;gap:12px;padding:12px 0;font-size:15.5px;line-height:1.45;font-weight:500}
+.li + .li{border-top:1px solid var(--line)}
+.card.tell .li + .li{border-color:#e2f1ec}
+.mk{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;margin-top:1px}
+.mk svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.mk.y{background:var(--green);color:#fff}
+.mk.n{background:#e9ebf1;color:#6a707d}
+.reflect{margin:28px 20px 0;border-radius:var(--r);background:var(--calm);border:1px solid var(--calm-line);padding:22px 18px 18px}
+.reflect h3{margin:0 0 4px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:#4a58a6}
+.reflect .q{font-size:21px;font-weight:700;letter-spacing:-.015em;margin:6px 0 4px;line-height:1.3}
+.reflect .opt-note{font-size:13px;color:var(--mute);margin:0 0 14px}
+.opt{display:flex;align-items:center;gap:12px;width:100%;padding:14px 14px;border-radius:14px;background:#fff;border:1.5px solid transparent;font-size:15.5px;font-weight:500;margin-top:8px;
+  box-shadow:0 1px 0 rgba(20,22,40,.04);transition:border-color .2s,transform .15s,box-shadow .2s}
+.opt:active{transform:scale(.99)}
+.opt .rd{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid #c3c7d2;display:grid;place-items:center;transition:.2s}
+.opt .rd:after{content:"";width:10px;height:10px;border-radius:50%;background:var(--ink);transform:scale(0);transition:transform .25s var(--ease)}
+.opt.on{border-color:var(--ink);box-shadow:0 6px 18px -10px rgba(20,22,40,.4)}
+.opt.on .rd{border-color:var(--ink)} .opt.on .rd:after{transform:scale(1)}
+.fine{margin:22px 24px 0;font-size:12.5px;line-height:1.55;color:var(--mute)}
+
+/* ---------- Reflection ---------- */
+.vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;gap:0;margin:8px 20px 0}
+.vs .c{border-radius:18px;padding:14px;border:1px solid var(--line);background:#fff}
+.vs .c small{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.vs .c b{display:block;font-size:22px;letter-spacing:-.02em;margin:6px 0 4px;line-height:1.15;font-weight:800}
+.vs .c.d b{font-size:15.5px;letter-spacing:-.005em;font-weight:700;margin:8px 0 4px}
+.vs .c span{font-size:12.5px;color:var(--mute);line-height:1.35;display:block}
+.vs .sep{width:28px;display:grid;place-items:center;position:relative}
+.vs .sep:before{content:"";position:absolute;top:18px;bottom:18px;left:50%;border-left:1.5px dashed #cfd3dd}
+.vs .sep i{position:relative;background:#fff;font-style:normal;font-size:13px;color:var(--mute);font-weight:700;padding:3px 0}
+.cap{margin:12px 24px 0;font-size:13.5px;color:var(--ink2);line-height:1.5;text-align:center;min-height:2.9em}
+.rflx{padding:26px 24px 0}
+.rflx h1{margin:0 0 14px;font-size:30px;letter-spacing:-.03em;line-height:1.1}
+.rflx p{margin:0 0 12px;font-size:16.5px;line-height:1.55;color:var(--ink2)}
+.rflx p b{color:var(--ink);font-weight:600}
+.quote{margin:20px 20px 0;padding:20px 20px 20px 22px;border-radius:var(--r);background:var(--ink);color:#fff;font-size:19px;line-height:1.4;font-weight:600;letter-spacing:-.01em;position:relative}
+.agency{margin:18px 24px 0;display:flex;gap:10px;font-size:13px;line-height:1.5;color:var(--mute)}
+.agency svg{flex:none;width:18px;height:18px;stroke:var(--mute);fill:none;stroke-width:1.8;margin-top:1px}
+.screen.active .stagger > *{animation:rise .7s var(--ease) both}
+.screen.active .stagger > :nth-child(2){animation-delay:.1s}
+.screen.active .stagger > :nth-child(3){animation-delay:.2s}
+.screen.active .stagger > :nth-child(4){animation-delay:.3s}
+.screen.active .stagger > :nth-child(5){animation-delay:.4s}
+.screen.active .stagger > :nth-child(6){animation-delay:.5s}
+.screen.active .stagger > :nth-child(7){animation-delay:.6s}
+
+/* ---------- small screens: the app goes full-bleed ---------- */
+@media (max-width:900px){
+  .shell{display:block;padding:0}
+  .side{width:100%;gap:0;position:sticky;top:0;z-index:100}
+  .side .head,.side .notes{display:none}
+  .demo{border-radius:0;padding:10px 12px;gap:8px;flex-direction:row;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--line)}
+  .demo label{display:none}
+  .demo .g{flex:1 1 150px}
+  .demo .steps{flex:1 1 100%}
+  .demo .row2{display:none}
+  .seg button{padding:7px 6px;font-size:12px}
+  .steps button{padding:6px 2px}
+  .phone{width:100%;height:calc(100dvh - 92px);border-radius:0;box-shadow:none}
+  .status{display:none}
+  .screen{padding-top:0}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.block{opacity:1!important;transform:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="head">
+      <h1>Outcome Context</h1>
+      <p class="sub">A case-study prototype for a Groww-like investing app. Scope: a first-time investor's first IPO listing outcome. Mock data throughout.</p>
+    </div>
+    <div class="demo">
+      <div class="g">
+        <label>Demo scenario</label>
+        <div class="seg" id="seg">
+          <button data-s="gain" class="on"><span class="p up">+24.8%</span> Gain</button>
+          <button data-s="loss"><span class="p down">−12.4%</span> Loss</button>
+        </div>
+      </div>
+      <div class="steps" id="steps">
+        <button data-go="portfolio">1 Portfolio</button>
+        <button data-go="holding">2 Holding</button>
+        <button data-go="context">3 Context</button>
+        <button data-go="reflection">4 Reflect</button>
+      </div>
+      <div class="row2"><span style="font-size:12px;color:var(--mute)">Tap through the phone, or jump here.</span><button class="restart" id="restart">Restart</button></div>
+    </div>
+    <div class="notes">
+      <div><h3>The feature does</h3><ul>
+        <li>Explains what the result is</li><li>Separates outcome from decision quality</li>
+        <li>Offers neutral context and one reflection</li><li>Leaves Buy and Sell untouched</li></ul></div>
+      <div class="no"><h3>The feature never</h3><ul>
+        <li>Recommends buy, sell or hold</li><li>Predicts returns or judges suitability</li>
+        <li>Rates the user as a good or bad investor</li><li>Blocks or delays an action</li></ul></div>
+      <div class="tag">Illustrative mock data. Not investment advice.</div>
+    </div>
+  </aside>
+
+  <main class="phone" id="phone">
+    <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+    <section class="screen" id="portfolio" aria-label="Portfolio"></section>
+    <section class="screen" id="holding" aria-label="IPO holding"></section>
+    <section class="screen" id="context" aria-label="Outcome Context"></section>
+    <section class="screen" id="reflection" aria-label="Reflection"></section>
+    <nav class="tabs" id="tabs" aria-label="Main">
+      <button><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Explore</button>
+      <button class="on"><svg viewBox="0 0 24 24"><path d="M4 20V10m6 10V4m6 16v-7m4 7H2"/></svg>Portfolio</button>
+      <button><svg viewBox="0 0 24 24"><path d="M7 4h10a2 2 0 0 1 2 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V6a2 2 0 0 1 2-2z"/><path d="M9 9h6M9 13h4"/></svg>Orders</button>
+      <button><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>Account</button>
+    </nav>
+  </main>
+</div>
+
+<script>
+/* ============ mock data ============ */
+const ORDER = ['portfolio','holding','context','reflection'];
+const SCN = {
+  gain:{ pct:24.8, delta:1240, price:156.20, value:6240, sign:'+', cls:'up',
+         pfValue:24850, pfDelta:1850, pfPct:'8.05', pfSign:'+', pfCls:'up',
+         series:[125,131,128,139,147,143,151,149,156.2], pf:[23000,23300,23150,23700,23900,24300,24850] },
+  loss:{ pct:12.4, delta:620, price:109.50, value:4380, sign:'−', cls:'down',
+         pfValue:22990, pfDelta:10, pfPct:'0.04', pfSign:'−', pfCls:'down',
+         series:[125,119,122,114,117,111,113,109.5], pf:[23000,23300,23150,23700,23900,23400,22990] }
+};
+const OTHERS = [
+  {n:'Kaveri Power Ltd.',t:'STOCK',inv:7000,val:7420,pct:'+6.0%',c:'up'},
+  {n:'Large Cap Index Fund',t:'MF',inv:6000,val:6350,pct:'+5.8%',c:'up'},
+  {n:'Lumen Pharma Ltd.',t:'STOCK',inv:5000,val:4840,pct:'−3.2%',c:'down'}
+];
+const REASONS = {
+  belief:{label:'I believed in the company', cap:'A belief about a company is a reason you can revisit on its own terms.'},
+  short:{label:'I wanted a short-term opportunity', cap:'A short-term aim is worth naming. It is the yardstick you chose, separate from the result.'},
+  rec:{label:'Someone recommended it', cap:'Where an idea came from is part of the story of a decision, whatever happened next.'},
+  unsure:{label:'I wasn’t really sure', cap:'Noticing uncertainty is itself useful information about how the decision was made.'}
+};
+const state = { s:'gain', screen:'portfolio', reason:null, dismissed:{gain:false,loss:false} };
+
+/* ============ helpers ============ */
+const $ = s => document.querySelector(s);
+const inr = n => '₹' + n.toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:0});
+const inr2 = n => '₹' + n.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const D = () => SCN[state.s];
+const back = (to) => `<button class="icon-btn" data-go="${to}" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>`;
+
+function line(vals, w, h, {pad=6, base=null, area=false}={}){
+  const lo=Math.min(...vals, base ?? Infinity), hi=Math.max(...vals, base ?? -Infinity);
+  const X=i=>pad+i*(w-2*pad)/(vals.length-1), Y=v=>h-pad-(v-lo)/(hi-lo||1)*(h-2*pad);
+  let d=''; vals.forEach((v,i)=>{ if(!i){d+=`M${X(i)},${Y(v)}`;return}
+    const px=X(i-1),py=Y(vals[i-1]),cx=(px+X(i))/2; d+=` C${cx},${py} ${cx},${Y(v)} ${X(i)},${Y(v)}`; });
+  const col = vals[vals.length-1] >= vals[0] ? 'var(--green)' : 'var(--red)';
+  const id='g'+Math.random().toString(36).slice(2,7);
+  return `<svg class="${area?'chart':'spark'}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".16"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
+    ${base!=null?`<line x1="${pad}" x2="${w-pad}" y1="${Y(base)}" y2="${Y(base)}" stroke="#c9cdd8" stroke-dasharray="3 4" vector-effect="non-scaling-stroke"/>`:''}
+    ${area?`<path d="${d} L${X(vals.length-1)},${h} L${X(0)},${h} Z" fill="url(#${id})"/>`:''}
+    <path d="${d}" fill="none" stroke="${col}" stroke-width="2.4" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+    <circle cx="${X(vals.length-1)}" cy="${Y(vals[vals.length-1])}" r="4" fill="${col}" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+/* ============ screen templates ============ */
+function tPortfolio(){
+  const d=D();
+  return `
+  <div class="hello"><h1>Good morning, Atishay</h1>
+    <div class="r"><button class="icon-btn" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 21h4"/></svg></button><div class="avatar">A</div></div></div>
+  <div class="pv">
+    <div class="lbl">Portfolio value</div>
+    <div class="big">${inr(d.pfValue)}</div>
+    <div class="ret ${d.pfCls}">${d.pfSign}${inr(d.pfDelta)} (${d.pfSign}${d.pfPct}%) <span class="m">overall return</span></div>
+    ${line(d.pf,340,84)}
+  </div>
+  <div class="chips"><span class="chip on">All</span><span class="chip">Stocks</span><span class="chip">Mutual funds</span><span class="chip">IPOs</span></div>
+  <div class="sec"><h2>Investments</h2><span>4 holdings</span></div>
+  <button class="hold first" data-go="holding" aria-label="Open NovaTech Ltd. IPO">
+    <div class="h1"><div class="nm">NovaTech Ltd. <span class="tag">IPO</span></div>
+      <div class="pc ${d.cls}">${d.sign}${d.pct}%</div></div>
+    <div class="meta"><div>Invested<b>₹5,000</b></div><div>Current value<b>${inr(d.value)}</b></div></div>
+    <span class="badge"><i></i>Your first IPO result</span>
+  </button>
+  ${OTHERS.map(o=>`<div class="hold plain"><div class="h1"><div class="nm">${o.n} <span class="tag">${o.t}</span></div><div class="pc ${o.c}">${o.pct}</div></div>
+    <div class="meta"><div>Invested<b>${inr(o.inv)}</b></div><div>Current value<b>${inr(o.val)}</b></div></div></div>`).join('')}
+  <div class="fine" style="margin-bottom:110px">Illustrative mock data for a design case study.</div>`;
+}
+
+function tHolding(){
+  const d=D(), up=state.s==='gain';
+  const card = state.dismissed[state.s]
+    ? `<button class="oc-quiet" data-act="reopen"><div>Your first IPO result <span>· available any time</span></div><u>View</u></button>`
+    : `<div class="oc">
+        <div class="eyebrow"><i></i>New</div>
+        <h3>Your first IPO result</h3>
+        <p>Your investment is currently ${up?'up':'down'} ${inr(d.delta)}.</p>
+        <p style="margin-top:8px">Want to understand what this result can — and can’t — tell you?</p>
+        <button class="btn primary" data-go="context">Understand this result</button>
+        <button class="btn ghost" data-act="dismiss">Not now</button>
+      </div>`;
+  return `
+  <div class="bar">${back('portfolio')}<div class="ttl">NovaTech Ltd.<small>IPO · NSE</small></div></div>
+  <div class="px">
+    <div class="big">${inr2(d.price)} <span class="pill ${d.cls}">${d.sign}${d.pct}%</span></div>
+    <div class="path"><b>₹125.00</b> → <b class="${d.cls}">${inr2(d.price)}</b> <span style="color:var(--mute)">· IPO price to current</span></div>
+    ${line(d.series,360,150,{area:true,base:125,pad:8})}
+  </div>
+  <div class="stats">
+    <div>Quantity<b>40 shares</b></div><div>IPO price<b>₹125.00</b></div>
+    <div>Invested<b>₹5,000</b></div><div>Current value<b>${inr(d.value)}</b></div>
+  </div>
+  ${card}
+  <div class="spacer"></div>
+  <div class="dock two"><button class="btn buy">BUY</button><button class="btn sell">SELL</button></div>`;
+}
+
+function tContext(){
+  const d=D(), up=state.s==='gain';
+  const lead = up
+    ? `<p class="lead">That’s a good outcome.</p><p class="sub">One result can’t tell you whether you’ve found a repeatable investing skill.</p>`
+    : `<p class="lead">A loss can feel significant when it’s your first one.</p><p class="sub">But the result alone can’t tell you whether your original reasoning was right or wrong.</p>`;
+  const tell = up ? 'Your investment is currently worth more than you paid.' : 'Your investment is currently worth less than you paid.';
+  const not = up
+    ? ['That you’re good at picking investments.','That similar IPOs will perform the same way.','That taking more risk will produce similar returns.']
+    : ['That the company is necessarily a bad investment.','That your original reasoning was necessarily wrong.','That the loss will necessarily continue.'];
+  const tick='<svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>', x='<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+  return `
+  <div class="bar">${back('holding')}</div>
+  <div class="hero">
+    <div class="eyebrow2">Your first IPO result <span class="tag">NovaTech Ltd.</span></div>
+    <div class="metric ${d.cls}">${d.sign}${d.pct}%</div>
+    ${lead.split('</p>')[0]}</p>
+    ${lead.split('</p>')[1]}</p>
+  </div>
+  <div class="block"><div class="label">WHAT THIS RESULT TELLS YOU</div>
+    <div class="card tell"><div class="li"><span class="mk y">${tick}</span>${tell}</div></div></div>
+  <div class="block"><div class="label">WHAT IT DOESN’T TELL YOU</div>
+    <div class="card">${not.map(t=>`<div class="li"><span class="mk n">${x}</span>${t}</div>`).join('')}</div></div>
+  <div class="block reflect" style="margin-left:20px;margin-right:20px">
+    <h3>One thing worth thinking about</h3>
+    <div class="q">Why did you invest in this IPO?</div>
+    <p class="opt-note">Just for you. There’s no right answer.</p>
+    <div role="radiogroup" aria-label="Why did you invest in this IPO?">
+    ${Object.entries(REASONS).map(([k,r])=>`<button class="opt ${state.reason===k?'on':''}" role="radio" aria-checked="${state.reason===k}" data-reason="${k}"><span class="rd"></span>${r.label}</button>`).join('')}
+    </div>
+  </div>
+  <p class="fine">This is context, not advice. Buy and Sell stay available, and every decision about this investment is yours.</p>
+  <div class="spacer" style="height:150px"></div>
+  <div class="dock">
+    <button class="btn primary" id="reflectBtn" data-go="reflection" ${state.reason?'':'disabled'}>Reflect on my decision</button>
+    <button class="btn ghost" data-go="holding" style="align-self:center">Not now</button>
+  </div>`;
+}
+
+function tReflection(){
+  const d=D(), r=REASONS[state.reason||'rec'];
+  return `
+  <div class="bar">${back('context')}<div class="ttl">Your reflection</div></div>
+  <div class="stagger">
+    <div class="vs">
+      <div class="c"><small>Outcome</small><b class="${d.cls}">${d.sign}${d.pct}%</b><span>What happened</span></div>
+      <div class="sep"><i>≠</i></div>
+      <div class="c d"><small>Decision</small><b>${r.label}</b><span>Why you acted</span></div>
+    </div>
+    <p class="cap">${r.cap}</p>
+    <div class="rflx">
+      <h1>That’s useful to know.</h1>
+      <p>Your return tells you <b>what happened</b>.</p>
+      <p>Your reason for investing tells you <b>why you acted</b>.</p>
+      <p>Keeping those separate can help you learn from the decision without judging yourself by the outcome.</p>
+    </div>
+    <div class="quote">A good outcome doesn’t automatically mean a good decision — and a bad outcome doesn’t automatically mean a bad decision.</div>
+    <div class="agency"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01" stroke-linecap="round"/></svg><span>Nothing here changes what you can do with this investment. This isn’t advice, and what you do next is up to you.</span></div>
+  </div>
+  <div class="spacer"></div>
+  <div class="dock"><button class="btn primary" data-go="portfolio">Back to my portfolio</button></div>`;
+}
+
+/* ============ render + navigation ============ */
+function renderScreens(){
+  $('#portfolio').innerHTML=tPortfolio();
+  $('#holding').innerHTML=tHolding();
+  $('#context').innerHTML=tContext();
+  $('#reflection').innerHTML=tReflection();
+}
+function show(){
+  const i=ORDER.indexOf(state.screen);
+  ORDER.forEach((id,j)=>{ const el=$('#'+id); el.classList.toggle('active',j===i); el.classList.toggle('before',j<i); });
+  $('#tabs').classList.toggle('hide', state.screen==='context'||state.screen==='reflection'||state.screen==='holding');
+  document.querySelectorAll('#steps button').forEach(b=>b.classList.toggle('on',b.dataset.go===state.screen));
+  document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.s===state.s));
+}
+function go(id){
+  if(id==='reflection' && !state.reason) state.reason='rec';   // demo jump: default to the specified example
+  if(id==='reflection') $('#reflection').innerHTML=tReflection();
+  state.screen=id; show();
+  const el=$('#'+id); el.scrollTop=0;
+}
+function setScenario(s){
+  state.s=s; const keep=document.querySelector('.screen.active').scrollTop;
+  renderScreens(); show(); document.querySelector('.screen.active').scrollTop=keep;
+}
+
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-go],[data-s],[data-reason],[data-act],#restart');
+  if(!t) return;
+  if(t.id==='restart'){ state.reason=null; state.dismissed={gain:false,loss:false}; state.s='gain'; renderScreens(); go('portfolio'); return; }
+  if(t.dataset.s){ setScenario(t.dataset.s); return; }
+  if(t.dataset.reason){
+    state.reason=t.dataset.reason;
+    document.querySelectorAll('#context .opt').forEach(o=>{const on=o.dataset.reason===state.reason;o.classList.toggle('on',on);o.setAttribute('aria-checked',on)});
+    $('#reflectBtn').disabled=false; return;
+  }
+  if(t.dataset.act==='dismiss'){ state.dismissed[state.s]=true; $('#holding').innerHTML=tHolding(); return; }
+  if(t.dataset.act==='reopen'){ state.dismissed[state.s]=false; $('#holding').innerHTML=tHolding(); return; }
+  if(t.dataset.go && !t.disabled) go(t.dataset.go);
+});
+
+renderScreens(); show();
+</script>
+</body>
+</html>
