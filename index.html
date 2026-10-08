@@ -409,7 +409,7 @@ function tContext(){
   const d=D(), up=state.s==='gain';
   const lead = `Your investment is currently ${up?'up':'down'} ${d.pct}%.`;
   const sub = up
-    ? 'One result can’t tell you whether you’ve found a repeatable investing skill.'
+    ? 'One result can’t tell you whether you can consistently pick winning investments.'
     : 'A loss can feel significant when it’s your first one. But the result alone can’t tell you whether your original reasoning was right or wrong.';
   const tell = up ? 'Your investment has gained value since listing.' : 'Your investment has lost value since listing.';
   const not = up
@@ -433,7 +433,7 @@ function tContext(){
     <div class="card more" id="notCard">${li(not[0])}<div class="rest">${not.slice(1).map(li).join('')}</div>
       <button class="morebtn" data-act="more" aria-expanded="false">Show 2 more</button></div></div>
   <div class="block"><div class="label">ONE THING TO REMEMBER</div>
-    <div class="card note"><p>IPO allotment is random. Getting an allotment wasn’t evidence of stock-picking skill.</p>
+    <div class="card note"><p>For an oversubscribed IPO, retail allotment can be determined by lottery. Getting an allotment isn’t evidence of stock-picking skill.</p>
       <p>Your return tells you what happened after listing — not whether you could have predicted it.</p></div></div>
   <div class="block reflect">
     <h3>One thing worth thinking about</h3>
